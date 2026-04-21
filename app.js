@@ -1,3 +1,5 @@
+require('dotenv').config();
+const connectDB = require('./config/db');
 const express = require("express");
 const studentRoutes = require("./routes/student.routes");
 const logger = require("./middlewares/logger.middleware");
@@ -6,6 +8,7 @@ const notFound = require("./middlewares/notFound.middleware");
 
 const app = express();
 
+connectDB();
 app.use(express.json());
 app.use(logger);
 

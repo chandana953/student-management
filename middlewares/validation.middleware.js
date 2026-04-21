@@ -1,9 +1,12 @@
-const Student = require("../models/student.model");
+// Placeholder for custom validation logic if needed
+// For now, use express-validator or similar for robust validation
 
-module.exports = (req, res, next) => {
-    const error = Student.validate(req.body);
-    if (error) {
-        return res.status(400).json({ error });
-    }
+// If you want to use express-validator, see previous suggestions
+// Here, we export a named middleware for compatibility
+
+const validateStudent = (req, res, next) => {
+    // Add custom validation logic here if needed
     next();
 };
+
+module.exports = { validateStudent };
