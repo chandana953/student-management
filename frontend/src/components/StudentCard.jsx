@@ -3,12 +3,12 @@ import { Button } from './Button'
 /**
  * StudentCard Component
  * 
- * Card representation of a single student
+ * Card representation of a single student with image
  * WHY: Modular card design allows flexible rendering of students in different layouts
  * (grid, list). Props make it reusable with different data sources.
  * 
  * Props:
- * - student: {id, name, age, course}
+ * - student: {id, name, age, course, imageUrl}
  * - onEdit: callback function when edit is clicked
  * - onDelete: callback function when delete is clicked
  */
@@ -18,6 +18,25 @@ export function StudentCard({ student, onEdit, onDelete }) {
 
   return (
     <div className="card">
+      {/* Student Image */}
+      {student.imageUrl ? (
+        <div className="mb-4">
+          <img
+            src={student.imageUrl}
+            alt={`${student.name}'s photo`}
+            className="w-full h-48 object-cover rounded-lg"
+            onError={(e) => {
+              // Hide image on error
+              e.target.style.display = 'none'
+            }}
+          />
+        </div>
+      ) : (
+        <div className="mb-4 bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+          <span className="text-6xl">👤</span>
+        </div>
+      )}
+
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-lg font-bold">{student.name}</h3>

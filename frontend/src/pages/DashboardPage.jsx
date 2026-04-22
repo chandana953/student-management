@@ -1,26 +1,61 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navbar, StudentCard, StudentTable, LoadingSpinner, EmptyState, SearchBar, Button } from '../components'
 import { useStudents } from '../hooks'
+import { useSocket } from '../context/SocketContext'
 
 /**
- * Dashboard Page
+ * Dashboard Page with Real-Time Updates
  * 
  * Main page displaying all students with CRUD operations
- * WHY: Central hub for data management. Demonstrates state management,
- * rendering lists, and handling user interactions.
+ * WHY: Central hub for data management with WebSocket real-time updates
  * 
- * Demonstrates:
- * - useState for UI state (view type, loading)
- * - Custom hook (useStudents) for data management
- * - Conditional rendering
- * - Event handling with callbacks
- * - Virtual DOM concept (React re-renders only changed parts)
+ * Features:
+ * - Real-time updates via WebSocket (Socket.IO)
+ * - Instant UI updates when other users add/edit/delete students
+ * - Connection status indicator
+ * 
+ * WebSocket Events:
+ * - student:created - Add new student to list
+ * - student:updated - Update student in list
+ * - student:deleted - Remove student from list
  */
 export function DashboardPage() {
   const { students, loading, error, deleteStudent, searchStudents, refetch } = useStudents()
+  const { connected, lastEvent, clearLastEvent } = useSocket()
   const [viewType, setViewType] = useState('card') // 'card' or 'table'
   const [searchOpen, setSearchOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [realtimeNotification, setRealtimeNotification] = useState(null)
+
+  // Handle real-time WebSocket events
+  useEffect(() => {
+    if (!lastEvent) return
+
+    const { type, data } = lastEvent
+    
+    switch (type) {
+      case 'created':
+        setRealtimeNotification(`New student added: ${data.student.name}`)
+        break
+      case 'updated':
+        setRealtimeNotification(`Student updated: ${data.student.name}`)
+        break
+      case 'deleted':
+        setRealtimeNotification('Student deleted')
+        break
+    }
+
+    // Clear notification after 3 seconds
+    const timer = setTimeout(() => {
+      setRealtimeNotification(null)
+    }, 3000)
+
+    // Refetch to get latest data
+    refetch()
+    clearLastEvent()
+
+    return () => clearTimeout(timer)
+  }, [lastEvent, refetch, clearLastEvent])
 
   // Handle delete with confirmation
   const handleDelete = async (id) => {
@@ -55,9 +90,29 @@ export function DashboardPage() {
         <div className="container-main">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">👥 Student Dashboard</h1>
-            <p className="text-gray-600">Manage all your students in one place</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">👥 Student Dashboard</h1>
+                <p className="text-gray-600">Manage all your students in one place</p>
+              </div>
+              {/* WebSocket Connection Status */}
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                connected 
+                  ? 'bg-green-100 text-green-700 border border-green-300' 
+                  : 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></span>
+                {connected ? '🔴 Live' : '⏳ Connecting...'}
+              </div>
+            </div>
           </div>
+
+          {/* Real-time Notification */}
+          {realtimeNotification && (
+            <div className="mb-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg animate-pulse">
+              <span className="font-bold">⚡ Real-time Update:</span> {realtimeNotification}
+            </div>
+          )}
 
           {/* Error State */}
           {error && (

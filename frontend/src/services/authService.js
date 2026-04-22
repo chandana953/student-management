@@ -1,9 +1,6 @@
 import { API_BASE } from '../utils/api.config'
 import { APIError } from '../utils/apiError'
 
-// TEMPORARY: Hardcoded backend URL for testing
-const BACKEND_URL = 'http://localhost:3000'
-
 /**
  * Authentication Service
  * 
@@ -13,7 +10,13 @@ const BACKEND_URL = 'http://localhost:3000'
  * 
  * Token Storage: localStorage (simple approach)
  * Token Format: JWT (JSON Web Token)
+ * 
+ * NOTE: VITE_API_BASE_URL is set in .env for development
+ * and in Render dashboard for production
  */
+
+// Backend URL - uses environment variable for flexibility
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
 const AUTH_TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_data'

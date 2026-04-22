@@ -1,7 +1,18 @@
-import { fetchAPI } from '../utils'
+import { fetchAPI, handleAPIError, getAuthHeaders } from '../utils';
 
-// Hardcoded backend URL (same as authService)
-const BACKEND_URL = 'http://localhost:3000'
+/**
+ * Student API Service
+ * 
+ * Handles all API calls for student CRUD operations
+ * WHY: Centralizes API logic, making it reusable and maintainable
+ * Provides clean interface for components to interact with backend
+ * 
+ * NOTE: VITE_API_BASE_URL is set in .env for development
+ * and in Render dashboard for production
+ */
+
+// Backend URL - uses environment variable for flexibility
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 /**
  * Student Service Layer - Real API Integration

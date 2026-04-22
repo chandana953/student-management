@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Button } from './Button'
+import { uploadImage, validateImageFile } from '../services/uploadService'
 
 /**
- * StudentForm Component
+ * StudentForm Component with Image Upload
  * 
- * Reusable form for adding/editing students
- * WHY: Single component handles both CREATE and UPDATE operations,
- * reducing code duplication. Props determine initial values and behavior.
+ * Reusable form for adding/editing students with local image storage
+ * Features:
+ * - File upload with preview
+ * - Image validation (type, size)
+ * - Upload progress indication
+ * - Local file storage (saved to /public/uploads)
  * 
  * Props:
  * - initialStudent: pre-filled data (null for new student)
@@ -17,20 +21,28 @@ export function StudentForm({ initialStudent = null, onSubmit, isLoading = false
   const [formData, setFormData] = useState({
     name: '',
     age: '',
-    course: 'Computer Science'
+    course: 'Computer Science',
+    imageUrl: ''
   })
 
   const [errors, setErrors] = useState({})
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
-  // useEffect: Simulate data loading when component mounts or initialStudent changes
-  // WHY: Demonstrates lifecycle management. In future, could fetch data from API here.
+  // Load initial student data including imageUrl
   useEffect(() => {
     if (initialStudent) {
       setFormData({
         name: initialStudent.name,
         age: initialStudent.age,
-        course: initialStudent.course
+        course: initialStudent.course,
+        imageUrl: initialStudent.imageUrl || ''
       })
+      // Set existing image preview if editing
+      if (initialStudent.imageUrl) {
+        setImagePreview(initialStudent.imageUrl)
+      }
     }
   }, [initialStudent])
 
@@ -71,8 +83,69 @@ export function StudentForm({ initialStudent = null, onSubmit, isLoading = false
     }
   }
 
-  const handleSubmit = (e) => {
+  // Handle file selection and preview
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    
+    if (!file) return
+
+    // Validate file
+    const validation = validateImageFile(file)
+    if (!validation.valid) {
+      setErrors(prev => ({ ...prev, image: validation.error }))
+      return
+    }
+
+    // Clear previous errors
+    setErrors(prev => ({ ...prev, image: '' }))
+    setSelectedFile(file)
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file)
+    setImagePreview(previewUrl)
+  }
+
+  // Upload image to server
+  const handleImageUpload = async () => {
+    if (!selectedFile) return
+
+    setUploadingImage(true)
+    try {
+      const result = await uploadImage(selectedFile)
+      
+      // Save image URL to form data (use fullImageUrl for display)
+      setFormData(prev => ({ ...prev, imageUrl: result.fullImageUrl || result.imageUrl }))
+      setErrors(prev => ({ ...prev, image: '' }))
+      
+      // Clear file selection after successful upload
+      setSelectedFile(null)
+      
+      console.log('Image uploaded successfully:', result.fullImageUrl || result.imageUrl)
+    } catch (error) {
+      console.error('Image upload failed:', error)
+      setErrors(prev => ({ ...prev, image: error.message || 'Failed to upload image' }))
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  // Clear selected image
+  const handleClearImage = () => {
+    setSelectedFile(null)
+    setImagePreview(null)
+    setFormData(prev => ({ ...prev, imageUrl: '' }))
+    if (imagePreview && !formData.imageUrl) {
+      URL.revokeObjectURL(imagePreview)
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // If there's a selected file not yet uploaded, upload it first
+    if (selectedFile && !formData.imageUrl) {
+      await handleImageUpload()
+    }
     
     if (validateForm()) {
       // Convert age to number before sending to backend
@@ -83,6 +156,15 @@ export function StudentForm({ initialStudent = null, onSubmit, isLoading = false
       onSubmit(dataToSubmit)
     }
   }
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview && !formData.imageUrl) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [])
 
   const courses = ['Computer Science', 'Information Technology', 'Software Engineering', 'Data Science', 'Web Development']
 
@@ -159,6 +241,81 @@ export function StudentForm({ initialStudent = null, onSubmit, isLoading = false
         {errors.course && (
           <p className="text-red-600 text-sm mt-1" role="alert">
             {errors.course}
+          </p>
+        )}
+      </div>
+
+      {/* Image Upload Field */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Student Photo
+        </label>
+        
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="mb-4 relative inline-block">
+            <img
+              src={imagePreview}
+              alt="Student preview"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
+            />
+            <button
+              type="button"
+              onClick={handleClearImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition"
+              title="Remove image"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* File Input */}
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <label
+            htmlFor="image"
+            className={`px-4 py-2 rounded-lg border-2 border-dashed cursor-pointer transition ${
+              errors.image
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-300 hover:border-primary-500 hover:bg-gray-50'
+            }`}
+          >
+            <span className="text-sm text-gray-600">
+              {selectedFile ? selectedFile.name : '📷 Choose Photo'}
+            </span>
+          </label>
+          
+          {/* Upload Button (only if file selected but not uploaded) */}
+          {selectedFile && !formData.imageUrl && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleImageUpload}
+              disabled={uploadingImage}
+              className="text-sm"
+            >
+              {uploadingImage ? '⏳ Uploading...' : '☁️ Upload'}
+            </Button>
+          )}
+        </div>
+
+        {/* Help Text */}
+        <p className="text-xs text-gray-500 mt-2">
+          Accepted: JPG, PNG, GIF, WebP (Max 5MB)
+        </p>
+
+        {/* Error Message */}
+        {errors.image && (
+          <p className="text-red-600 text-sm mt-1" role="alert">
+            {errors.image}
           </p>
         )}
       </div>

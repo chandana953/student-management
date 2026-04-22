@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { SocketProvider } from './context/SocketContext'
 import { LandingPage, DashboardPage, FormPage, LoginPage, SignupPage } from './pages'
 
 /**
@@ -63,38 +64,40 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          {/* Landing Page - Public */}
-          <Route path="/" element={<LandingPage />} />
-          
-          {/* Auth Routes - Public only (redirect if logged in) */}
-          <Route 
-            path="/login" 
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            } 
-          />
-          <Route 
-            path="/signup" 
-            element={
-              <PublicRoute>
-                <SignupPage />
-              </PublicRoute>
-            } 
-          />
-          
-          {/* Protected Routes - Require authentication */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/add" element={<FormPage />} />
-            <Route path="/edit/:id" element={<FormPage />} />
-          </Route>
-          
-          {/* 404 - Redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <SocketProvider>
+          <Routes>
+            {/* Landing Page - Public */}
+            <Route path="/" element={<LandingPage />} />
+            
+            {/* Auth Routes - Public only (redirect if logged in) */}
+            <Route 
+              path="/login" 
+              element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/signup" 
+              element={
+                <PublicRoute>
+                  <SignupPage />
+                </PublicRoute>
+              } 
+            />
+            
+            {/* Protected Routes - Require authentication */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/add" element={<FormPage />} />
+              <Route path="/edit/:id" element={<FormPage />} />
+            </Route>
+            
+            {/* 404 - Redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </SocketProvider>
       </AuthProvider>
     </Router>
   )
