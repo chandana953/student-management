@@ -1,4 +1,9 @@
 module.exports = (err, req, res, next) => {
+    // Log full error details for debugging
+    console.error('ERROR:', err);
+    console.error('Error Message:', err.message);
+    console.error('Error Stack:', err.stack);
+    
     const status = err.status || 500;
 
     let errorResponse = {
