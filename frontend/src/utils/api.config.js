@@ -12,7 +12,7 @@
  */
 
 // Use full URL to backend server
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://student-management-eg5j.onrender.com'
 
 export const API_ENDPOINTS = {
   students: {

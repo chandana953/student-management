@@ -21,7 +21,7 @@ import { io } from 'socket.io-client';
 const SocketContext = createContext(null);
 
 // Backend WebSocket URL
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'wss://student-management-eg5j.onrender.com';
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);

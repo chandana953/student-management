@@ -17,7 +17,7 @@ import { getToken } from './authService';
  */
 
 // Backend URL - uses environment variable for flexibility
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://student-management-eg5j.onrender.com';
 
 /**
  * Upload single image file

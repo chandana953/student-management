@@ -16,7 +16,7 @@ import { APIError } from '../utils/apiError'
  */
 
 // Backend URL - uses environment variable for flexibility
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://student-management-eg5j.onrender.com'
 
 const AUTH_TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_data'
