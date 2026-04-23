@@ -5,7 +5,7 @@
 services:
   # Backend API Service
   - type: web
-    name: student-management-api
+    name: student-management-eg5j
     runtime: node
     plan: free
     buildCommand: npm install
@@ -17,9 +17,9 @@ services:
       - key: PORT
         value: 10000
       - key: MONGO_URI
-        sync: false  # Set manually in Render dashboard
+        sync: false # Set manually in Render dashboard
       - key: JWT_SECRET
-        generateValue: true  # Auto-generate secure secret
+        generateValue: true # Auto-generate secure secret
       - key: FRONTEND_URL
         fromService:
           name: student-management-app
@@ -35,11 +35,11 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         fromService:
-          name: student-management-api
+          name: student-management-eg5j
           type: web
           property: url
       - key: VITE_SOCKET_URL
         fromService:
-          name: student-management-api
+          name: student-management-eg5j
           type: web
           property: url
